@@ -17,7 +17,7 @@ exports.register = async (req, res) => {
     // Create user without exposing isAdmin
     const user = await User.create({ name, number, email, password });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, "mongodb+srv://comitymember:vijaycomity%401208@comity.rsd4g.mongodb.net/your-database-name?retryWrites=true&w=majority", { expiresIn: '7d' });
 
     res.status(201).json({
       token,
@@ -44,7 +44,7 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, "mongodb+srv://comitymember:vijaycomity%401208@comity.rsd4g.mongodb.net/your-database-name?retryWrites=true&w=majority", { expiresIn: '7d' });
 
     res.json({
       token,
