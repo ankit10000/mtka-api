@@ -7,7 +7,7 @@ const protect = async (req, res, next) => {
   if (token && token.startsWith('Bearer ')) {
     try {
       token = token.split(' ')[1]; // Extract the token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token
+      const decoded = jwt.verify(token, "mongodb+srv://comitymember:vijaycomity%401208@comity.rsd4g.mongodb.net/your-database-name?retryWrites=true&w=majority"); // Verify the token
       req.user = await User.findById(decoded.id).select('-password'); // Attach user to request
       next();
     } catch (err) {
