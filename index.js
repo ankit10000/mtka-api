@@ -12,7 +12,10 @@ const TriplePanarouter = require('./Router/gamerouter/TriplePanarouter');
 const halfsangam = require('./Router/gamerouter/halfsangamrouter');
 const fullsangam = require('./Router/gamerouter/fullsangamrouter');
 const walletRouter = require('./Router/walletRouter/walletRouter');
+const withdrawalrouter = require('./Router/walletRouter/withdrawalrouter');
 
+const allbeatrouter = require('./Router/gamerouter/allbeatrouter');
+const starlineGame = require('./Router/starlineGameRoutes/starlineGameRoutes');
 
 
 // admin routers
@@ -39,6 +42,10 @@ app.use('/api/TriplePana', TriplePanarouter);
 app.use('/api/halfsangam', halfsangam);
 app.use('/api/fullsangam', fullsangam);
 app.use('/api/wallet', walletRouter);
+app.use('/api/withdrawal', withdrawalrouter);
+
+app.use('/api/allbeat', allbeatrouter);
+app.use('/api/starline', starlineGame);
 
 
 
