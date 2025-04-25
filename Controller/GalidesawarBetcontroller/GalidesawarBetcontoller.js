@@ -1,0 +1,185 @@
+const GalidesawarGame = require('../../modal/GalidesawarGamemodal/GalidesawarGamemodal');
+const GalidesawarBet = require('../../modal/GalidesawarGamemodal/GalidesawarBetmodal');
+const Wallet = require('../../modal/walletmodal/walletmodal');
+const moment = require('moment');
+
+// ✅ Place Bet
+const placeBet = async (req, res) => {
+    const { gameId, betType, number, amount } = req.body;
+    const userId = req.user._id;
+  
+    try {
+      const game = await GalidesawarGame.findById(gameId);
+      if (!game) return res.status(404).json({ message: 'Game not found' });
+  
+      if (game.result && game.result.left && game.result.right) {
+        return res.status(400).json({ message: 'Betting closed - result already declared' });
+      }
+  
+      // ✅ Corrected wallet fetching
+      const wallet = await Wallet.findOne({ user: userId });
+      if (!wallet) return res.status(404).json({ message: 'Wallet not found' });
+  
+      const now = moment();
+      const [hour, minute] = game.closeTime.split(':').map(Number);
+      const gameClose = moment().set({ hour, minute, second: 0 });
+  
+      if (now.isAfter(gameClose)) {
+        return res.status(400).json({ message: 'Betting closed for this game' });
+      }
+  
+      if (wallet.balance < amount) {
+        return res.status(400).json({ message: 'Insufficient balance' });
+      }
+  
+      // ✅ Deduct balance and log transaction (optional)
+      wallet.balance -= amount;
+      wallet.transactions.push({
+        amount,
+        type: 'debit',
+        note: `Galidesawar bet on ${number} (${betType})`
+      });
+      await wallet.save();
+  
+      const bet = new GalidesawarBet({
+        userId,
+        gameId,
+        betType,
+        number,
+        amount
+      });
+  
+      await bet.save();
+      res.status(200).json({ message: 'Bet placed successfully', bet });
+  
+    } catch (error) {
+      console.error('Place Bet Error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+
+// ✅ Declare Result
+const uploadResult = async (req, res) => {
+    const { gameId } = req.params;
+    const { left, right } = req.body;
+  
+    try {
+      if (!left || !right) {
+        return res.status(400).json({ message: "Left and Right numbers are required" });
+      }
+  
+      const jodi = `${left}${right}`;
+  
+      const game = await GalidesawarGame.findById(gameId);
+      if (!game) return res.status(404).json({ message: 'Game not found' });
+  
+      if (game.result.left && game.result.right) {
+        return res.status(400).json({ message: 'Result already declared' });
+      }
+  
+      // ✅ Set the result
+      game.result = { left, right, jodi };
+      await game.save();
+  
+      // ✅ Find and reward winners
+      const bets = await GalidesawarBet.find({ gameId });
+      const winners = [];
+  
+      for (let bet of bets) {
+        let isWinner = false;
+  
+        if (bet.betType === 'left' && bet.number === left) isWinner = true;
+        if (bet.betType === 'right' && bet.number === right) isWinner = true;
+        if (bet.betType === 'jodi' && bet.number === jodi) isWinner = true;
+  
+        if (isWinner) {
+          bet.isWinner = true;
+          await bet.save();
+  
+          const wallet = await Wallet.findOne({ user: bet.userId });
+          if (wallet) {
+            const winAmount = bet.amount * 10; // ⬅️ You can customize multiplier
+            wallet.balance += winAmount;
+            wallet.transactions.push({
+              amount: winAmount,
+              type: 'credit',
+              note: `Winning on ${bet.betType} bet - ${bet.number}`
+            });
+            await wallet.save();
+          }
+  
+          winners.push(bet.userId);
+        }
+      }
+  
+      res.status(200).json({
+        message: 'Result uploaded successfully',
+        result: { left, right, jodi },
+        winners
+      });
+  
+    } catch (error) {
+      console.error('Upload Result Error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+// / ➕ Add new game
+const addGame = async (req, res) => {
+  const { gameName, closeTime } = req.body;
+
+  try {
+    if (!gameName || !closeTime) {
+      return res.status(400).json({ message: 'gameName and closeTime are required' });
+    }
+
+    const newGame = new GalidesawarGame({
+      gameName,
+      closeTime
+    });
+
+    await newGame.save();
+
+    res.status(201).json({ message: 'Game created successfully', game: newGame });
+  } catch (error) {
+    console.error('Add Game Error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+const getAllWinners = async (req, res) => {
+    try {
+      const winnerBets = await GalidesawarBet.find({ isWinner: true })
+        .populate('userId', 'name number') // Populate user details
+        .populate('gameId', 'gameName closeTime result') // Populate game details
+        .sort({ _id: -1 }); // latest winners first
+  
+      const formattedWinners = winnerBets.map(bet => ({
+        userId: bet.userId._id,
+        userName: bet.userId.name,
+        userNumber: bet.userId.number,
+        gameId: bet.gameId._id,
+        gameName: bet.gameId.gameName,
+        result: bet.gameId.result,
+        closeTime: bet.gameId.closeTime,
+        betType: bet.betType,
+        number: bet.number,
+        amount: bet.amount,
+        winningAmount: bet.amount * 10,
+      }));
+  
+      res.status(200).json({ winners: formattedWinners });
+    } catch (error) {
+      console.error("Get Winners Error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
+
+module.exports = {
+  placeBet,
+  uploadResult ,
+  addGame,
+  getAllWinners
+};

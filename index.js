@@ -16,7 +16,7 @@ const withdrawalrouter = require('./Router/walletRouter/withdrawalrouter');
 
 const allbeatrouter = require('./Router/gamerouter/allbeatrouter');
 const starlineGame = require('./Router/starlineGameRoutes/starlineGameRoutes');
-
+const galidesawar = require('./Router/galidesawarRoutes/galidesawarRoutes');
 
 // admin routers
 const homeDpRoutes = require('./Router/Adminrouter/homedprouter');
@@ -46,6 +46,8 @@ app.use('/api/withdrawal', withdrawalrouter);
 
 app.use('/api/allbeat', allbeatrouter);
 app.use('/api/starline', starlineGame);
+app.use('/api/galidesawar', galidesawar);
+
 
 
 

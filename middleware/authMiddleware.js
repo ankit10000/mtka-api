@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../modal/Usermodal');
 
+
 const protect = async (req, res, next) => {
   let token = req.headers.authorization;
 
