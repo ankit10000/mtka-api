@@ -125,7 +125,7 @@ const uploadResult = async (req, res) => {
     }
   };
 
-// / ➕ Add new game
+// ➕ Add new game (No token required)
 const addGame = async (req, res) => {
   const { gameName, closeTime } = req.body;
 
@@ -177,9 +177,51 @@ const getAllWinners = async (req, res) => {
     }
   };
 
+  // show all games
+  const getAllGames = async (req, res) => {
+    try {
+      const games = await GalidesawarGame.find().sort({ _id: -1 });
+      res.status(200).json({ games });
+    }
+    catch (error) {
+      console.error("Get All Games Error:", error);
+      res.status(500).json({ message: "Server error" });  
+    }
+  }
+
+  // Delete game by ID
+  const deleteGame = async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res.status(400).json({ message: 'Game ID is required' });
+      }
+
+      const deletedGame = await GalidesawarGame.findByIdAndDelete(id);
+      
+      if (!deletedGame) {
+        return res.status(404).json({ message: 'Game not found' });
+      }
+
+      res.status(200).json({ 
+        success: true, 
+        message: 'Game deleted successfully',
+        deletedGame 
+      });
+    } catch (error) {
+      console.error('Delete Game Error:', error);
+      if (error.name === 'CastError') {
+        return res.status(400).json({ message: 'Invalid game ID format' });
+      }
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
 module.exports = {
   placeBet,
-  uploadResult ,
-  addGame,
-  getAllWinners
+  uploadResult,
+  addGame,  // This is the token-less version
+  getAllWinners,
+  getAllGames,
+  deleteGame
 };

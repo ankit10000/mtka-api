@@ -18,6 +18,11 @@ const allbeatrouter = require('./Router/gamerouter/allbeatrouter');
 const starlineGame = require('./Router/starlineGameRoutes/starlineGameRoutes');
 const galidesawar = require('./Router/galidesawarRoutes/galidesawarRoutes');
 
+
+const starlineGameRoutes = require("./Router/starlineGameRoutes/starlineGameRoutes");
+const starlineBetRoutes = require("./Router/starlineGameRoutes/starlineBetRoutes");
+const starlineResultRoutes = require("./Router/starlineGameRoutes/starlineResultRoutes");
+
 // admin routers
 const homeDpRoutes = require('./Router/Adminrouter/homedprouter');
 const gametimerouter = require('./Router/Adminrouter/gametimerouter');
@@ -47,6 +52,11 @@ app.use('/api/withdrawal', withdrawalrouter);
 app.use('/api/allbeat', allbeatrouter);
 app.use('/api/starline', starlineGame);
 app.use('/api/galidesawar', galidesawar);
+
+
+app.use("/api/starline/game", starlineGameRoutes);
+app.use("/api/starline/bet", starlineBetRoutes);
+app.use("/api/starline/result", starlineResultRoutes);
 
 
 

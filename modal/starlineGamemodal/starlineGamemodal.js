@@ -1,19 +1,21 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const starlineGameSchema = new mongoose.Schema({
-  gameName: {
-    type: String,
+  gameName: { type: String, required: true },
+  openTime: { type: String, required: true },
+  closeTime: { type: String, required: true },
+  gameDate: {
+    type: Date,
     required: true,
-    unique: true
+    default: () => {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      return now;
+    }
   },
-  openingDisabled: {
-    type: Boolean,
-    default: false
-  },
-  closingDisabled: {
-    type: Boolean,
-    default: false
-  }
-});
+  isActive: { type: Boolean, default: true }
+}, { timestamps: true });
 
-module.exports = mongoose.model('StarlineGame', starlineGameSchema);
+starlineGameSchema.index({ gameDate: 1 });
+
+module.exports = mongoose.model("StarlineGame", starlineGameSchema);

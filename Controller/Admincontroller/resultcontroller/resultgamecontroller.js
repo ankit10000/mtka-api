@@ -1,5 +1,5 @@
 const GameResult = require("../../../modal/Adminmodal/Result/resultgamemodal");
-
+const StarlineResult = require("../../../modal/starlineGamemodal/StarlineResultmodal");
 // @desc    Create a new game result
 // @route   POST /api/game-result
 exports.createGameResult = async (req, res) => {
@@ -34,7 +34,7 @@ exports.createGameResult = async (req, res) => {
 // @route   GET /api/game-result
 exports.getAllResults = async (req, res) => {
   try {
-    const results = await GameResult.find().sort({ date: -1 });
+    const results = await StarlineResult.find().sort({ date: -1 });
     res.status(200).json(results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching results", error: error.message });
